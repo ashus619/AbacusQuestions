@@ -42,9 +42,10 @@ def display_question():
 
     # When the Submit Answer button is pressed, store the answer and move to the next question
     if st.button('Submit Answer'):
+        # Store the answer in session state
         st.session_state.student_answers.append((answer, correct_answer))
 
-        # Move to the next question if there are more questions, else show result
+        # Only move to the next question when the button is pressed
         if st.session_state.question_index < len(questions) - 1:
             st.session_state.question_index += 1
         else:
