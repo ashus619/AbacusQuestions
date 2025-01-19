@@ -29,6 +29,7 @@ for _ in range(20):
 if 'question_index' not in st.session_state:
     st.session_state.question_index = 0
     st.session_state.student_answers = []
+    st.session_state.answers_submitted = [False] * len(questions)  # Track answered questions
 
 # Function to display a question and capture answer
 def display_question():
@@ -47,6 +48,7 @@ def display_question():
         if submit_button:
             # Store the answer in session state
             st.session_state.student_answers.append((answer, correct_answer))
+            st.session_state.answers_submitted[st.session_state.question_index] = True
 
             # Only move to the next question when the button is pressed
             if st.session_state.question_index < len(questions) - 1:
@@ -58,4 +60,14 @@ def display_question():
 
 # Display the current question
 if st.session_state.question_index < len(questions):
-    display_question()
+    # Check if the current question has already been answered
+    if not st.session_state.answers_submitted[st.session_state.question_index]:
+        display_question()
+    else:
+        # Skip the question if already answered
+        if st.session_state.question_index < len(questions) - 1:
+            st.session_state.question_index += 1
+        else:
+            # Show results if all questions are answered
+            score = sum(1 for ans, correct in st.session_state.student_answers if ans == correct)
+            st.write(f"You got {score} out of 20 correct!")
