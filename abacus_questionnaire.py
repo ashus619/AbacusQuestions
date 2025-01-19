@@ -29,6 +29,9 @@ for _ in range(20):
 if 'question_index' not in st.session_state:
     st.session_state.question_index = 0
     st.session_state.student_answers = []
+
+# Ensure answers_submitted is initialized as a list of False values for each question
+if 'answers_submitted' not in st.session_state:
     st.session_state.answers_submitted = [False] * len(questions)  # Track answered questions
 
 # Function to display a question and capture answer
