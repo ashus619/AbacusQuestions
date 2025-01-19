@@ -40,11 +40,11 @@ def display_question():
     answer = st.radio(f"Choose the answer for Question {st.session_state.question_index + 1}",
                      [correct_answer - 1, correct_answer, correct_answer + 1])
 
-    # Store the answer when the user selects it
+    # When the Submit Answer button is pressed, store the answer and move to the next question
     if st.button('Submit Answer'):
         st.session_state.student_answers.append((answer, correct_answer))
 
-        # Move to the next question
+        # Move to the next question if there are more questions, else show result
         if st.session_state.question_index < len(questions) - 1:
             st.session_state.question_index += 1
         else:
