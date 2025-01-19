@@ -37,21 +37,24 @@ def display_question():
 
     # Display the question and options
     st.write(f"Question {st.session_state.question_index + 1}: {question}")
-    answer = st.radio(f"Choose the answer for Question {st.session_state.question_index + 1}",
-                     [correct_answer - 1, correct_answer, correct_answer + 1])
 
-    # When the Submit Answer button is pressed, store the answer and move to the next question
-    if st.button('Submit Answer'):
-        # Store the answer in session state
-        st.session_state.student_answers.append((answer, correct_answer))
+    with st.form(key=f"question_form_{st.session_state.question_index}"):
+        # Form elements
+        answer = st.radio("Choose the answer", [correct_answer - 1, correct_answer, correct_answer + 1])
+        submit_button = st.form_submit_button("Submit Answer")
 
-        # Only move to the next question when the button is pressed
-        if st.session_state.question_index < len(questions) - 1:
-            st.session_state.question_index += 1
-        else:
-            # Show results at the end
-            score = sum(1 for ans, correct in st.session_state.student_answers if ans == correct)
-            st.write(f"You got {score} out of 20 correct!")
+        # When the Submit Answer button is pressed
+        if submit_button:
+            # Store the answer in session state
+            st.session_state.student_answers.append((answer, correct_answer))
+
+            # Only move to the next question when the button is pressed
+            if st.session_state.question_index < len(questions) - 1:
+                st.session_state.question_index += 1
+            else:
+                # Show results at the end
+                score = sum(1 for ans, correct in st.session_state.student_answers if ans == correct)
+                st.write(f"You got {score} out of 20 correct!")
 
 # Display the current question
 if st.session_state.question_index < len(questions):
