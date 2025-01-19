@@ -25,21 +25,33 @@ for _ in range(20):
     question, answer = generate_question()
     questions.append((question, answer))
 
-# Streamlit app to display questions and collect answers
-st.title("Abacus Questionnaire")
+# Initialize session state if not already set
+if 'question_index' not in st.session_state:
+    st.session_state.question_index = 0
+    st.session_state.student_answers = []
 
-student_answers = []
+# Function to display a question and capture answer
+def display_question():
+    # Get the current question and answer
+    question, correct_answer = questions[st.session_state.question_index]
 
-for i, (question, correct_answer) in enumerate(questions):
-    st.write(f"Question {i + 1}: {question}")
+    # Display the question and options
+    st.write(f"Question {st.session_state.question_index + 1}: {question}")
+    answer = st.radio(f"Choose the answer for Question {st.session_state.question_index + 1}",
+                     [correct_answer - 1, correct_answer, correct_answer + 1])
 
-    # Display multiple choice answers
-    answer = st.radio(f"Choose the answer for Question {i + 1}", [correct_answer - 1, correct_answer, correct_answer + 1])
+    # Store the answer when the user selects it
+    if st.button('Submit Answer'):
+        st.session_state.student_answers.append((answer, correct_answer))
 
-    # Add the answer to the list
-    student_answers.append((answer, correct_answer))
+        # Move to the next question
+        if st.session_state.question_index < len(questions) - 1:
+            st.session_state.question_index += 1
+        else:
+            # Show results at the end
+            score = sum(1 for ans, correct in st.session_state.student_answers if ans == correct)
+            st.write(f"You got {score} out of 20 correct!")
 
-# After all answers are submitted, show the result
-if len(student_answers) == 20:
-    score = sum(1 for ans, correct in student_answers if ans == correct)
-    st.write(f"You got {score} out of 20 correct!")
+# Display the current question
+if st.session_state.question_index < len(questions):
+    display_question()
