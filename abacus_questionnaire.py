@@ -26,7 +26,7 @@ if 'questions' not in st.session_state:
 
 if 'user_answers' not in st.session_state:
     # Initialize user answers storage in session state
-    st.session_state.user_answers = {f"question_{i}": None for i in range(20)}
+    st.session_state.user_answers = {f"question_{i}": None for i in range(10)}
 
 # Display all questions at once
 st.title("Abacus Question Paper")
@@ -35,7 +35,8 @@ st.title("Abacus Question Paper")
 for idx, (question, correct_answer) in enumerate(st.session_state.questions):
     user_answer = st.radio(f"Question {idx + 1}: {question}",
                            options=[correct_answer - 1, correct_answer, correct_answer + 1],
-                           key=f"question_{idx}")
+                           key=f"question_{idx}",
+                           index=None)  # This ensures no option is pre-selected
 
     # Update the session state with the selected answer
     st.session_state.user_answers[f"question_{idx}"] = user_answer
