@@ -44,11 +44,11 @@ if st.button("Generate Test"):
     questions = [generate_question(num_digits) for _ in range(num_questions)]
     st.session_state[test_id]['questions'] = questions
 
-    # Generate a unique test URL
-    test_link = f"{st.request.base_url}?test_id={test_id}"
+    # Create a link that can be shared with the student
+    test_link = f"/?test_id={test_id}"
 
     # Show the test link for the teacher to copy and share
-    st.write(f"Test generated! Share this link with the student to take the test: [Test Link]({test_link})")
+    st.write(f"Test generated! Share this link with the student to take the test: {st.request.host_url}{test_link}")
 
 # ------------------------------------------------------------
 
