@@ -9,48 +9,79 @@ Original file is located at
 
 import streamlit as st
 import random
+import uuid
 
-# Abacus Question Generator Code
-def generate_question():
-    num1 = random.randint(1, 99)
-    num2 = random.randint(1, 99)
+# Function to generate a question based on the number of digits
+def generate_question(digits):
+    num1 = random.randint(10**(digits-1), 10**digits - 1)  # Random number with specified digits
+    num2 = random.randint(10**(digits-1), 10**digits - 1)
     operation = random.choice(['+', '-'])
     question = f"{num1} {operation} {num2}"
     answer = eval(question)
     return question, answer
 
-# Check if questions are already generated in session state
-if 'questions' not in st.session_state:
-    # Generate 10 questions if not already generated
-    st.session_state.questions = [generate_question() for _ in range(10)]
+# Teacher's Interface: Decide Test Parameters
+st.title("Teacher's Interface: Abacus Test Parameters")
 
-if 'user_answers' not in st.session_state:
-    # Initialize user answers storage in session state
-    st.session_state.user_answers = {f"question_{i}": None for i in range(10)}
+# Number of questions
+num_questions = st.number_input("Number of Questions", min_value=1, max_value=50, value=10)
 
-# Display all questions at once
-st.title("Abacus Question Paper")
+# Number of digits in the questions
+num_digits = st.number_input("Number of Digits in the Questions", min_value=1, max_value=3, value=2)
 
-# Iterate through questions and display them
-for idx, (question, correct_answer) in enumerate(st.session_state.questions):
-    user_answer = st.radio(f"Question {idx + 1}: {question}",
-                           options=[correct_answer - 1, correct_answer, correct_answer + 1],
-                           key=f"question_{idx}",
-                           index=None)  # This ensures no option is pre-selected
+# Button to generate the test
+if st.button("Generate Test"):
+    # Generate a unique test ID for the student
+    test_id = str(uuid.uuid4())
 
-    # Update the session state with the selected answer
-    st.session_state.user_answers[f"question_{idx}"] = user_answer
+    # Save test parameters in session_state (or any persistent storage)
+    st.session_state[test_id] = {
+        'num_questions': num_questions,
+        'num_digits': num_digits,
+    }
 
-# Button to submit all answers at once
-submit_button = st.button("Submit Answers")
+    # Generate the questions based on the input parameters
+    questions = [generate_question(num_digits) for _ in range(num_questions)]
+    st.session_state[test_id]['questions'] = questions
 
-# When the submit button is pressed, show results
-if submit_button:
-    score = 0
-    # Calculate score based on user answers
-    for idx, (_, correct_answer) in enumerate(st.session_state.questions):
-        if st.session_state.user_answers[f"question_{idx}"] == correct_answer:
-            score += 1
+    # Generate a unique test URL
+    test_link = f"{st.request.base_url}?test_id={test_id}"
 
-    # Display the result
-    st.write(f"You got {score} out of 10 correct!")
+    # Show the test link for the teacher to copy and share
+    st.write(f"Test generated! Share this link with the student to take the test: [Test Link]({test_link})")
+
+# ------------------------------------------------------------
+
+# Student's Interface: Answering the Test
+
+test_id = st.experimental_get_query_params().get("test_id", [None])[0]
+
+if test_id and test_id in st.session_state:
+    test_data = st.session_state[test_id]
+
+    st.title(f"Student's Test - {test_id}")
+
+    # Display all questions for the student
+    student_answers = {}
+
+    for idx, (question, correct_answer) in enumerate(test_data['questions']):
+        user_answer = st.radio(f"Question {idx + 1}: {question}",
+                               options=[correct_answer - 1, correct_answer, correct_answer + 1],
+                               key=f"question_{idx}",
+                               index=None)
+        student_answers[f"question_{idx}"] = user_answer
+
+    # Button to submit all answers at once
+    submit_button = st.button("Submit Answers")
+
+    if submit_button:
+        score = 0
+        # Calculate score based on user answers
+        for idx, (_, correct_answer) in enumerate(test_data['questions']):
+            if student_answers[f"question_{idx}"] == correct_answer:
+                score += 1
+
+        # Display the result
+        st.write(f"You got {score} out of {test_data['num_questions']} correct!")
+else:
+    st.write("Invalid test link or test expired.")
