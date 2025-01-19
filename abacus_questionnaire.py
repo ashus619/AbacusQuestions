@@ -10,47 +10,48 @@ Original file is located at
 import random
 import streamlit as st
 
+# Function to generate a question
 def generate_question():
-    """Generates a simple addition or subtraction question with 1-2 digit numbers."""
     num1 = random.randint(1, 99)
     num2 = random.randint(1, 99)
     operation = random.choice(["+", "-"])
-    if operation == "-" and num1 < num2:  # Ensure no negative results
+    if operation == "-" and num1 < num2:
         num1, num2 = num2, num1
     correct_answer = eval(f"{num1} {operation} {num2}")
     choices = [correct_answer]
     while len(choices) < 4:
         fake_answer = random.randint(correct_answer - 10, correct_answer + 10)
-        if fake_answer != correct_answer and fake_answer not in choices:
+        if fake_answer not in choices:
             choices.append(fake_answer)
     random.shuffle(choices)
-    question = f"What is {num1} {operation} {num2}?"
-    return question, correct_answer, choices
+    return f"What is {num1} {operation} {num2}?", correct_answer, choices
 
-# Streamlit UI
-st.title("Abacus Quiz")
-st.write("Answer the following questions:")
-
+# Initialize session state
+if "questions" not in st.session_state:
+    st.session_state.questions = [generate_question() for _ in range(20)]
+if "current_index" not in st.session_state:
+    st.session_state.current_index = 0
 if "score" not in st.session_state:
     st.session_state.score = 0
-    st.session_state.question_idx = 0
-    st.session_state.total_questions = 20
-    st.session_state.questions = [generate_question() for _ in range(20)]
 
-if st.session_state.question_idx < st.session_state.total_questions:
-    question, correct_answer, choices = st.session_state.questions[st.session_state.question_idx]
-    st.write(f"Question {st.session_state.question_idx + 1}: {question}")
-    user_answer = st.radio("Choose your answer:", choices, key=st.session_state.question_idx)
+# Display the current question
+if st.session_state.current_index < len(st.session_state.questions):
+    question, correct_answer, choices = st.session_state.questions[st.session_state.current_index]
+    st.write(f"Question {st.session_state.current_index + 1}: {question}")
+    user_answer = st.radio("Choose your answer:", choices)
 
     if st.button("Submit Answer"):
+        # Check if the answer is correct
         if user_answer == correct_answer:
             st.session_state.score += 1
             st.success("Correct!")
         else:
-            st.error(f"Wrong! The correct answer was {correct_answer}.")
-        st.session_state.question_idx += 1
-        st.experimental_rerun()
+            st.error(f"Wrong! The correct answer was {correct_answer}")
+
+        # Move to the next question
+        st.session_state.current_index += 1
+
 else:
-    st.write(f"Quiz completed! Your score is {st.session_state.score}/{st.session_state.total_questions}.")
-    if st.button("Restart Quiz"):
-        st.session_state.clear()
+    # Quiz is complete
+    st.write(f"Quiz completed! Your final score is {st.session_state.score}/20")
+    st.stop()
