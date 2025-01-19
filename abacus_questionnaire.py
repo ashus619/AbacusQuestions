@@ -19,25 +19,20 @@ def generate_question():
     answer = eval(question)
     return question, answer
 
-# Generate 10 questions
-questions = []
-for _ in range(10):
-    question, answer = generate_question()
-    questions.append((question, answer))
+# Check if questions are already generated in session state
+if 'questions' not in st.session_state:
+    # Generate 10 questions if not already generated
+    st.session_state.questions = [generate_question() for _ in range(10)]
 
-# Initialize session state to store user answers
 if 'user_answers' not in st.session_state:
-    st.session_state.user_answers = {}
+    # Initialize user answers storage in session state
+    st.session_state.user_answers = {f"question_{i}": None for i in range(20)}
 
 # Display all questions at once
 st.title("Abacus Question Paper")
 
 # Iterate through questions and display them
-for idx, (question, correct_answer) in enumerate(questions):
-    # Use radio buttons for each question
-    if f"question_{idx}" not in st.session_state.user_answers:
-        st.session_state.user_answers[f"question_{idx}"] = None
-
+for idx, (question, correct_answer) in enumerate(st.session_state.questions):
     user_answer = st.radio(f"Question {idx + 1}: {question}",
                            options=[correct_answer - 1, correct_answer, correct_answer + 1],
                            key=f"question_{idx}")
@@ -52,7 +47,7 @@ submit_button = st.button("Submit Answers")
 if submit_button:
     score = 0
     # Calculate score based on user answers
-    for idx, (question, correct_answer) in enumerate(questions):
+    for idx, (_, correct_answer) in enumerate(st.session_state.questions):
         if st.session_state.user_answers[f"question_{idx}"] == correct_answer:
             score += 1
 
