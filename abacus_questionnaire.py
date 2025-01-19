@@ -21,56 +21,34 @@ def generate_question():
 
 # Generate 20 questions
 questions = []
-for _ in range(20):
+for _ in range(10):
     question, answer = generate_question()
     questions.append((question, answer))
 
-# Initialize session state if not already set
-if 'question_index' not in st.session_state:
-    st.session_state.question_index = 0
-    st.session_state.student_answers = []
+# Display all questions at once
+st.title("Abacus Question Paper")
 
-# Ensure answers_submitted is initialized as a list of False values for each question
-if 'answers_submitted' not in st.session_state:
-    st.session_state.answers_submitted = [False] * len(questions)  # Track answered questions
+# Dictionary to store user answers
+user_answers = {}
 
-# Function to display a question and capture answer
-def display_question():
-    # Get the current question and answer
-    question, correct_answer = questions[st.session_state.question_index]
+# Iterate through questions and display them
+for idx, (question, correct_answer) in enumerate(questions):
+    # Use radio buttons for each question
+    user_answer = st.radio(f"Question {idx + 1}: {question}",
+                           options=[correct_answer - 1, correct_answer, correct_answer + 1],
+                           key=f"question_{idx}")
+    user_answers[idx] = user_answer
 
-    # Display the question and options
-    st.write(f"Question {st.session_state.question_index + 1}: {question}")
+# Button to submit all answers at once
+submit_button = st.button("Submit Answers")
 
-    with st.form(key=f"question_form_{st.session_state.question_index}"):
-        # Form elements
-        answer = st.radio("Choose the answer", [correct_answer - 1, correct_answer, correct_answer + 1])
-        submit_button = st.form_submit_button("Submit Answer")
+# When the submit button is pressed, show results
+if submit_button:
+    score = 0
+    # Calculate score based on user answers
+    for idx, (question, correct_answer) in enumerate(questions):
+        if user_answers[idx] == correct_answer:
+            score += 1
 
-        # When the Submit Answer button is pressed
-        if submit_button:
-            # Store the answer in session state
-            st.session_state.student_answers.append((answer, correct_answer))
-            st.session_state.answers_submitted[st.session_state.question_index] = True
-
-            # Only move to the next question when the button is pressed
-            if st.session_state.question_index < len(questions) - 1:
-                st.session_state.question_index += 1
-            else:
-                # Show results at the end
-                score = sum(1 for ans, correct in st.session_state.student_answers if ans == correct)
-                st.write(f"You got {score} out of 20 correct!")
-
-# Display the current question
-if st.session_state.question_index < len(questions):
-    # Check if the current question has already been answered
-    if not st.session_state.answers_submitted[st.session_state.question_index]:
-        display_question()
-    else:
-        # Skip the question if already answered
-        if st.session_state.question_index < len(questions) - 1:
-            st.session_state.question_index += 1
-        else:
-            # Show results if all questions are answered
-            score = sum(1 for ans, correct in st.session_state.student_answers if ans == correct)
-            st.write(f"You got {score} out of 20 correct!")
+    # Display the result
+    st.write(f"You got {score} out of 10 correct!")
