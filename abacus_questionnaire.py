@@ -7,51 +7,39 @@ Original file is located at
     https://colab.research.google.com/drive/11x2Tmk6sRytQ5AgC374JGoxTXgB8z4T-
 """
 
-import random
 import streamlit as st
+import random
 
-# Function to generate a question
+# Abacus Question Generator Code
 def generate_question():
     num1 = random.randint(1, 99)
     num2 = random.randint(1, 99)
-    operation = random.choice(["+", "-"])
-    if operation == "-" and num1 < num2:
-        num1, num2 = num2, num1
-    correct_answer = eval(f"{num1} {operation} {num2}")
-    choices = [correct_answer]
-    while len(choices) < 4:
-        fake_answer = random.randint(correct_answer - 10, correct_answer + 10)
-        if fake_answer not in choices:
-            choices.append(fake_answer)
-    random.shuffle(choices)
-    return f"What is {num1} {operation} {num2}?", correct_answer, choices
+    operation = random.choice(['+', '-'])
+    question = f"{num1} {operation} {num2}"
+    answer = eval(question)
+    return question, answer
 
-# Initialize session state
-if "questions" not in st.session_state:
-    st.session_state.questions = [generate_question() for _ in range(20)]
-if "current_index" not in st.session_state:
-    st.session_state.current_index = 0
-if "score" not in st.session_state:
-    st.session_state.score = 0
+# Generate 20 questions
+questions = []
+for _ in range(20):
+    question, answer = generate_question()
+    questions.append((question, answer))
 
-# Display the current question
-if st.session_state.current_index < len(st.session_state.questions):
-    question, correct_answer, choices = st.session_state.questions[st.session_state.current_index]
-    st.write(f"Question {st.session_state.current_index + 1}: {question}")
-    user_answer = st.radio("Choose your answer:", choices)
+# Streamlit app to display questions and collect answers
+st.title("Abacus Questionnaire")
 
-    if st.button("Submit Answer"):
-        # Check if the answer is correct
-        if user_answer == correct_answer:
-            st.session_state.score += 1
-            st.success("Correct!")
-        else:
-            st.error(f"Wrong! The correct answer was {correct_answer}")
+student_answers = []
 
-        # Move to the next question
-        st.session_state.current_index += 1
+for i, (question, correct_answer) in enumerate(questions):
+    st.write(f"Question {i + 1}: {question}")
 
-else:
-    # Quiz is complete
-    st.write(f"Quiz completed! Your final score is {st.session_state.score}/20")
-    st.stop()
+    # Display multiple choice answers
+    answer = st.radio(f"Choose the answer for Question {i + 1}", [correct_answer - 1, correct_answer, correct_answer + 1])
+
+    # Add the answer to the list
+    student_answers.append((answer, correct_answer))
+
+# After all answers are submitted, show the result
+if len(student_answers) == 20:
+    score = sum(1 for ans, correct in student_answers if ans == correct)
+    st.write(f"You got {score} out of 20 correct!")
